@@ -1,21 +1,97 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Guess the Word Game</title>
-    <link rel="stylesheet" href="word.css">
-</head>
-<body>
-    <div class="container">
-        <h1>Guess the Word</h1>
-        <div id="wordDisplay"></div>
-        <input type="text" id="letterInput" maxlength="1" placeholder="Guess a letter" />
-        <button id="guessButton">Guess</button>
-        <p id="feedback"></p>
-        <p id="attempts"></p>
-    </div>
+// Initialize game variables
+let word = '';
+let guessedLetters = [];
+let incorrectLetters = [];
+let attemptsLeft = 6;
 
-    <script src="game.js"></script>
-</body>
-</html>
+// DOM elements
+const gameSetup = document.getElementById('gameSetup');
+const gamePlay = document.getElementById('gamePlay');
+const wordInput = document.getElementById('wordInput');
+const startGameButton = document.getElementById('startGameButton');
+const wordDisplay = document.getElementById('wordDisplay');
+const letterInput = document.getElementById('letterInput');
+const guessButton = document.getElementById('guessButton');
+const feedback = document.getElementById('feedback');
+const attemptsLeftElement = document.getElementById('attemptsLeft');
+const incorrectLettersElement = document.getElementById('incorrectLetters');
+const gameStatus = document.getElementById('gameStatus');
+
+// Start the game after Player 1 enters the word
+startGameButton.addEventListener('click', function() {
+    word = wordInput.value.trim().toLowerCase();
+    if (word && /^[a-z]+$/i.test(word)) {
+        gameSetup.style.display = 'none';
+        gamePlay.style.display = 'block';
+        wordInput.value = '';
+        displayWord();
+    } else {
+        feedback.textContent = 'Please enter a valid word.';
+        feedback.style.color = 'red';
+    }
+});
+
+// Display the word with underscores
+function displayWord() {
+    let display = '';
+    for (let i = 0; i < word.length; i++) {
+        display += guessedLetters.includes(word[i]) ? word[i] : '_';
+        display += ' ';
+    }
+    wordDisplay.textContent = display.trim();
+}
+
+// Handle the letter guess
+function handleGuess() {
+    const letter = letterInput.value.toLowerCase();
+    if (letter && letter.length === 1 && /^[a-z]$/i.test(letter)) {
+        if (guessedLetters.includes(letter) || incorrectLetters.includes(letter)) {
+            feedback.textContent = 'You already guessed that letter!';
+            feedback.style.color = 'orange';
+        } else {
+            if (word.includes(letter)) {
+                guessedLetters.push(letter);
+                feedback.textContent = `Correct! Keep going!`;
+                feedback.style.color = 'green';
+            } else {
+                incorrectLetters.push(letter);
+                attemptsLeft--;
+                feedback.textContent = `Wrong guess! Try again!`;
+                feedback.style.color = 'red';
+            }
+            updateGameStatus();
+            letterInput.value = '';
+            letterInput.focus();
+        }
+    } else {
+        feedback.textContent = 'Please enter a valid letter!';
+        feedback.style.color = 'orange';
+    }
+    displayWord();
+    updateIncorrectLetters();
+}
+
+// Update the attempts left and game status
+function updateGameStatus() {
+    attemptsLeftElement.textContent = attemptsLeft;
+    if (attemptsLeft <= 0) {
+        gameStatus.textContent = `Game Over! The word was: ${word}`;
+        gameStatus.style.color = 'red';
+        guessButton.disabled = true;
+        letterInput.disabled = true;
+    }
+    if (!wordDisplay.textContent.includes('_')) {
+        gameStatus.textContent = `Congratulations! You guessed the word!`;
+        gameStatus.style.color = 'green';
+        guessButton.disabled = true;
+        letterInput.disabled = true;
+    }
+}
+
+// Update incorrect letters display
+function updateIncorrectLetters() {
+    incorrectLettersElement.textContent = incorrectLetters.join(', ');
+}
+
+// Event listener for the guess button
+guessButton.addEventListener('click', handleGuess);
